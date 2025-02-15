@@ -44,11 +44,11 @@ async function scrapeCompanies() {
                     await page.evaluate(el => el.click(), loadMoreButton[1]);
                     // await loadMoreButton.click(); 
                     console.log("load more button clicked");
-                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    await new Promise(resolve => setTimeout(resolve, 1500));
                 }
 
                 let newHeight = await page.evaluate(() => document.body.scrollHeight);
-                console.log("new height:" + newHeight + "previous Height:" + previousHeight);
+                console.log("new height:" + newHeight + " previous Height:" + previousHeight);
                 if (newHeight < previousHeight) {
                     console.log("new height is smaller than previous height");
                     break;
@@ -75,10 +75,15 @@ async function scrapeCompanies() {
 
     for (let i = 0; i < companyElements.length; i++) {
         try {
+            if(i == 36) {
+                continue;
+            }
             console.log(`Scraping company ${i + 1}...`);
 
             const companies = await page.$$(companySelector);
+
             await companies[i].click();
+            console.log("company clicked")
             await new Promise(resolve => setTimeout(resolve, 3000));
 
             let details = await page.evaluate(() => {
