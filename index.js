@@ -1,4 +1,7 @@
 const puppeteer = require('puppeteer');
+const fs = require('fs');
+const path = require('path');
+const xlsx = require('xlsx');
 
 async function scrapeCompanies() {
     const browser = await puppeteer.launch({ headless: false }); 
@@ -44,7 +47,7 @@ async function scrapeCompanies() {
                     await page.evaluate(el => el.click(), loadMoreButton[1]);
                     // await loadMoreButton.click(); 
                     console.log("load more button clicked");
-                    await new Promise(resolve => setTimeout(resolve, 1500));
+                    await new Promise(resolve => setTimeout(resolve, 2500));
                 }
 
                 let newHeight = await page.evaluate(() => document.body.scrollHeight);
@@ -72,10 +75,11 @@ async function scrapeCompanies() {
     console.log(`Found ${companyElements.length} companies.`);
 
     let companyData = [];
+    let companyCount = 0;
 
     for (let i = 0; i < companyElements.length; i++) {
         try {
-            if(i == 36) {
+            if(i == 36 || i == 515 || i == 581  || i == 863  || i == 1383 || i == 1810) {
                 continue;
             }
             console.log(`Scraping company ${i + 1}...`);
@@ -107,6 +111,7 @@ async function scrapeCompanies() {
 
             companyData.push(details);
             console.log(details);
+            console.log(companyCount = i + 1);
 
             await page.goBack({ waitUntil: 'networkidle2' });
             await new Promise(resolve => setTimeout(resolve, 2000));
@@ -117,6 +122,22 @@ async function scrapeCompanies() {
     }
 
     console.log("Scraped Data:", companyData);
+
+    const directory = path.join(__dirname, 'scraped_data');
+    if (!fs.existsSync(directory)) {
+        fs.mkdirSync(directory);
+    }
+
+    const filePath = path.join(directory, 'companies.xlsx');
+    const ws = xlsx.utils.json_to_sheet(companyData);
+    const wb = xlsx.utils.book_new();
+    xlsx.utils.book_append_sheet(wb, ws, "Companies");
+    xlsx.writeFile(wb, filePath);
+
+    console.log(`Company data saved to ${filePath}`);
+
+    console.log("last scraped company: " + companyCount );
+    console.log(`Found ${companyElements.length} companies.`);
     await browser.close();
 }
 
